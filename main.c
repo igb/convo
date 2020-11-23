@@ -5,58 +5,82 @@
 #include <libgen.h>
 #include <errno.h>
 #include <string.h>
-#include <getopt.h>
 #include <sys/types.h>
 
-#define OPTSTR "lh:"
+
 
 
 typedef struct {
   int           little_endian;
+  int           decimal_out;
+  int           hexadecimal_out;
 } options_t;
+
+
 
 
 void usage(char *name, int opt) {
   printf ("usage: %s [-lh] binary_string\n\t-l\t\tsets endianess to little endian (default is big endian)\n", name);
   
 }
-int  do_the_needful(options_t *options);
+
 
 int main(int argc, char *argv[]) {
 
+
   int opt;
-  int opt_count;
+  
 
 
   
   options_t options = { 0 };
 
   opterr = 0;
+
+  int j = 0;
   
-  while ((opt = getopt(argc, argv, OPTSTR)) != EOF) {
+  for (j = 0; j  < argc; j++) {
 
-      opt_count++;
-      
-    switch(opt) {
-      
-    case 'l' :
-      options.little_endian += 1;
-      break;
+  
 
-    case 'h':
-    default:
-      usage(argv[0], opt);
-      break;
-    }
+
+      
+    if (strcmp(argv[j],  "-l") == 0) {
+	options.little_endian += 1;
+      }
+
+    if ((strcmp(argv[j],  "-d") == 0) || (strcmp(argv[j],  "--dec") == 0)) {
+	if (options.hexadecimal_out) {
+	  printf("Error: hexadecimal outpout already set.");
+	  usage(argv[0], opt);
+	  exit(1);
+	}
+	options.decimal_out += 1;
+      }
+      
+    if ((strcmp(argv[j],  "-x") == 0) || (strcmp(argv[j],  "--hex") == 0)) {
+	if (options.decimal_out) {
+	  printf("Error: decimal outpout already set.");
+	  usage(argv[0], opt);
+	  exit(1);
+	}
+	options.hexadecimal_out += 1;
+      }
+    if ((strcmp(argv[j],  "-h") == 0) || (strcmp(argv[j],  "--help") == 0)) {
+	usage(argv[0], opt);
+	exit(1);
+      }
   }
+  
 
 
 
-  char bin_str[sizeof argv[argc - 1]];
+  char bin_str[strlen( argv[argc - 1])];
 
   
   strcpy(bin_str, argv[argc - 1]);
 
+    
   int i;
   
   for (i = 0; i < strlen(bin_str); i++){
@@ -68,6 +92,7 @@ int main(int argc, char *argv[]) {
 
   }
 
+  
 
   //buffer for endianed string
   char endianed_bin_str[sizeof bin_str];
@@ -84,10 +109,18 @@ int main(int argc, char *argv[]) {
 
   }
 
-  
+
   int dec_val = strtol(endianed_bin_str, NULL, 2);
+
   
-  printf("%d\n", dec_val);
+  if (options.hexadecimal_out) {
+    printf("%X\n", dec_val);
+  } else if (options.decimal_out) {
+      printf("%d\n", dec_val);
+  } else {
+      printf("%d\n", dec_val);
+  }
+    
 
     
 }
